@@ -7,10 +7,324 @@
 ** This class contains independent utilities to help the MyDbConne application.
 */
 package com . kisscodesystems . MyDbConne ;
+import java . io . File ;
+import java . io . FileOutputStream ;
+import java . io . InputStream ;
+import java . sql . Blob ;
+import java . sql . Clob ;
+import java . sql . ResultSet ;
+import java . sql . SQLXML ;
 import java . util . ArrayList ;
 import java . util . HashMap ;
+import oracle . sql . BFILE ;
 public final class Utils
 {
+/*
+** Gets the value of a column from a result set.
+** In case of any exception or error, the message
+** will be returned as the value to show it to the user.
+*/
+  protected final Object getVal ( ResultSet rs , String colname )
+  {
+// This will be the value to be returned.
+    Object val = null ;
+    if ( rs != null )
+    {
+// Getting the value.
+// If any error or exception has ccurred
+// then the error message will be the value of the object.
+      try
+      {
+        val = rs . getObject ( colname ) ;
+      }
+      catch ( Error e )
+      {
+        val = e . toString ( ) . trim ( ) ;
+      }
+      catch ( Exception e )
+      {
+        val = e . toString ( ) . trim ( ) ;
+      }
+    }
+    else
+    {
+// Let the val be null.
+      val = null ;
+    }
+// Returning the val.
+    return val ;
+  }
+/*
+** Gets the string representation of the object.
+*/
+  protected final String getValStr ( Object val , String nullStr )
+  {
+    if ( val == null )
+    {
+      return nullStr ;
+    }
+    else
+    {
+      return val . toString ( ) ;
+    }
+  }
+/*
+** Getting xmls in Db2 and Postgresql databases.
+** The Mssql database handles well the xml data.
+** The Oracle can handle the whole xml selecting
+** without the XMLType oracle datatype (and jar)
+** in the way:convert it to clob in your select!
+** select t.xmlcolumn.getclobval() from table t;
+*/
+  protected final boolean getXml ( ResultSet rs , String destfile , String colname , String utf8 )
+  {
+    boolean separately = false ;
+    SQLXML sxml = null ;
+    FileOutputStream fout = null ;
+    String buff = null ;
+    try
+    {
+      sxml = rs . getSQLXML ( colname ) ;
+      buff = sxml . getString ( ) ;
+      fout = new FileOutputStream ( destfile ) ;
+      fout . write ( buff . getBytes ( utf8 ) ) ;
+      fout . flush ( ) ;
+      separately = true ;
+    }
+    catch ( Exception e )
+    {
+      separately = false ;
+    }
+    finally
+    {
+      try
+      {
+        fout . close ( ) ;
+      }
+      catch ( Exception e )
+      {
+        separately = false ;
+      }
+    }
+    sxml = null ;
+    fout = null ;
+    buff = null ;
+    return separately ;
+  }
+/*
+** Getting blobs from a column of a result set and trying to write it to a file.
+*/
+  protected final boolean getBlob ( ResultSet rs , String destfile , String colname )
+  {
+    boolean separately = false ;
+    Blob blob = null ;
+    File file = null ;
+    FileOutputStream fout = null ;
+    byte [ ] buff = null ;
+    try
+    {
+      blob = rs . getBlob ( colname ) ;
+      file = new File ( destfile ) ;
+      if ( ! file . exists ( ) )
+      {
+        fout = new FileOutputStream ( destfile ) ;
+        buff = blob . getBytes ( 1 , ( int ) blob . length ( ) ) ;
+        fout . write ( buff ) ;
+        fout . flush ( ) ;
+        separately = true ;
+      }
+    }
+    catch ( Exception e )
+    {
+      separately = false ;
+    }
+    finally
+    {
+      try
+      {
+        fout . close ( ) ;
+      }
+      catch ( Exception e )
+      {
+        separately = false ;
+      }
+    }
+    blob = null ;
+    file = null ;
+    fout = null ;
+    buff = null ;
+    return separately ;
+  }
+/*
+** Getting clobs from a column of a result set and trying to write it to a file.
+*/
+  protected final boolean getClob ( ResultSet rs , String destfile , String colname , String utf8 )
+  {
+    boolean separately = false ;
+    Clob clob = null ;
+    File file = null ;
+    FileOutputStream fout = null ;
+    String buff = null ;
+    try
+    {
+      clob = rs . getClob ( colname ) ;
+      file = new File ( destfile ) ;
+      if ( ! file . exists ( ) )
+      {
+        fout = new FileOutputStream ( destfile ) ;
+        buff = clob . getSubString ( 1 , ( int ) clob . length ( ) ) ;
+        fout . write ( buff . getBytes ( utf8 ) ) ;
+        fout . flush ( ) ;
+        separately = true ;
+      }
+    }
+    catch ( Exception e )
+    {
+      separately = false ;
+    }
+    finally
+    {
+      try
+      {
+        fout . close ( ) ;
+      }
+      catch ( Exception e )
+      {
+        separately = false ;
+      }
+    }
+    clob = null ;
+    file = null ;
+    fout = null ;
+    buff = null ;
+    return separately ;
+  }
+/*
+** Getting raws from a column of a result set and trying to write it to a file.
+*/
+  protected final boolean getRaw ( ResultSet rs , String destfile , String colname , int bufflength )
+  {
+    boolean separately = false ;
+    InputStream inst = null ;
+    File file = null ;
+    FileOutputStream fout = null ;
+    byte [ ] buff = null ;
+    int bytes = 0 ;
+    try
+    {
+      inst = rs . getBinaryStream ( colname ) ;
+      file = new File ( destfile ) ;
+      if ( ! file . exists ( ) )
+      {
+        fout = new FileOutputStream ( destfile ) ;
+        buff = new byte [ bufflength ] ;
+        while ( ( bytes = inst . read ( buff ) ) != - 1 )
+        {
+          fout . write ( buff ) ;
+        }
+        fout . flush ( ) ;
+        separately = true ;
+      }
+    }
+    catch ( Exception e )
+    {
+      separately = false ;
+    }
+    finally
+    {
+      try
+      {
+        fout . close ( ) ;
+      }
+      catch ( Exception e )
+      {
+        separately = false ;
+      }
+      try
+      {
+        inst . close ( ) ;
+      }
+      catch ( Exception e )
+      {
+        separately = false ;
+      }
+    }
+    inst = null ;
+    file = null ;
+    fout = null ;
+    buff = null ;
+    bytes = 0 ;
+    return separately ;
+  }
+/*
+** Getting bfiles from a column of a result set and trying to write it to a file.
+*/
+  protected final boolean getBfile ( ResultSet rs , String destfile , String colname , int bufflength )
+  {
+    boolean separately = false ;
+    BFILE bfile = null ;
+    InputStream inst = null ;
+    File file = null ;
+    FileOutputStream fout = null ;
+    byte [ ] buff = null ;
+    int bytes = 0 ;
+    try
+    {
+      bfile = ( BFILE ) rs . getObject ( colname ) ;
+      bfile . openFile ( ) ;
+      inst = bfile . getBinaryStream ( ) ;
+      file = new File ( destfile ) ;
+      if ( ! file . exists ( ) )
+      {
+        fout = new FileOutputStream ( destfile ) ;
+        buff = new byte [ bufflength ] ;
+        while ( ( bytes = inst . read ( buff ) ) != - 1 )
+        {
+          fout . write ( buff ) ;
+        }
+        fout . flush ( ) ;
+        separately = true ;
+      }
+    }
+    catch ( Exception e )
+    {
+      separately = false ;
+    }
+    finally
+    {
+      try
+      {
+        fout . close ( ) ;
+      }
+      catch ( Exception e )
+      {
+        separately = false ;
+      }
+      try
+      {
+        inst . close ( ) ;
+      }
+      catch ( Exception e )
+      {
+        separately = false ;
+      }
+      try
+      {
+        bfile . closeFile ( ) ;
+      }
+      catch ( Exception e )
+      {
+        separately = false ;
+      }
+    }
+    bfile = null ;
+    inst = null ;
+    file = null ;
+    fout = null ;
+    buff = null ;
+    bytes = 0 ;
+    return separately ;
+  }
 /*
 ** This function will calculate the elapsed time according the elapsedMs
 ** milliseconds of query duration.

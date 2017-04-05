@@ -8,9 +8,12 @@
 ** of connections queries and result sets.
 */
 package com . kisscodesystems . MyDbConne ;
+import java . io . File ;
+import java . io . FileOutputStream ;
 import java . sql . ResultSet ;
 import java . sql . ResultSetMetaData ;
 import java . sql . SQLException ;
+import java . sql . SQLXML ;
 import java . util . ArrayList ;
 import java . util . Collections ;
 import java . util . Date ;
@@ -55,7 +58,7 @@ public class Print extends Qdata
         if ( stringToDisplay != null )
         {
 // Getting the connections of this application. (all.)
-          connections = getConnectionsByDbtype ( dbtype ) ;
+          connections = getConnectionsByDbtype ( dbtype , true ) ;
           if ( connections != null )
           {
 // These are necessary to display this result!
@@ -148,11 +151,18 @@ public class Print extends Qdata
     }
   }
 /*
+** Gets the count of all connections stored already.
+*/
+  protected final int getNumOfAllConnections ( )
+  {
+    return getConnectionsByDbtype ( dbTypeOracle , false ) . size ( ) + getConnectionsByDbtype ( dbTypeMssql , false ) . size ( ) + getConnectionsByDbtype ( dbTypeDb2 , false ) . size ( ) + getConnectionsByDbtype ( dbTypePostgresql , false ) . size ( ) ;
+  }
+/*
 ** Getting the connections by dbtypes.
 ** Will scan the content of the connections and also will get the queries belonging to that connection if there are any.
 // The content of the connections is based on characters, keep it in mind.
 */
-  protected final HashMap < String , ArrayList < Integer > > getConnectionsByDbtype ( String dbtype )
+  protected final HashMap < String , ArrayList < Integer > > getConnectionsByDbtype ( String dbtype , boolean queryIdsNeeded )
   {
 // This will be the final result to be returned.
     HashMap < String , ArrayList < Integer > > connections = new HashMap < String , ArrayList < Integer > > ( ) ;
@@ -219,8 +229,15 @@ public class Print extends Qdata
               }
               connna += fileContentConnectionsOrig [ j ] ;
             }
-// The name of the connection is also known, so we can get the queries of this connection.
-            queryIds = getQueriesByConnection ( dbtype , connna ) ;
+// The name of the connection is also known, so we can get the queries of this connection if requested
+            if ( queryIdsNeeded )
+            {
+              queryIds = getQueriesByConnection ( dbtype , connna ) ;
+            }
+            else
+            {
+              queryIds = null ;
+            }
 // Add these two: the connection name is the key and the list of the queries is the value of this hashmap.
             connections . put ( connna , queryIds ) ;
           }
@@ -228,7 +245,7 @@ public class Print extends Qdata
       }
       else
       {
-        systemexit ( "Error - one of these is null: connectionsHeader|appDateFormatForDisplaying|sep9|messageLogApplicationInstanceInitialize, getConnnaPos" ) ;
+        systemexit ( "Error - one of these is null: connectionsHeader|appDateFormatForDisplaying|sep9|messageLogApplicationInstanceInitialize, getConnectionsByDbtype" ) ;
       }
     }
 // These are releasable now.
@@ -439,23 +456,23 @@ public class Print extends Qdata
               }
               else
               {
-                systemexit ( "Error - queryDbTypeValue is null, listConnectionsByDbtype" ) ;
+                systemexit ( "Error - queryDbTypeValue is null, getQueriesByDbtype" ) ;
               }
             }
             else
             {
-              systemexit ( "Error - queryDbTypeKey is null, listConnectionsByDbtype" ) ;
+              systemexit ( "Error - queryDbTypeKey is null, getQueriesByDbtype" ) ;
             }
           }
           else
           {
-            systemexit ( "Error - queryDbType is null, listConnectionsByDbtype" ) ;
+            systemexit ( "Error - queryDbType is null, getQueriesByDbtype" ) ;
           }
         }
       }
       else
       {
-        systemexit ( "Error - queryDbTypes is null, listConnectionsByDbtype" ) ;
+        systemexit ( "Error - queryDbTypes is null, getQueriesByDbtype" ) ;
       }
     }
 // Not used reference.
@@ -688,7 +705,9 @@ public class Print extends Qdata
 // This will be the state and the scrollable property of this valid query.
       String queryState = getQueryState ( queryId ) ;
       String queryIsScrollable = getQueryIsScrollable ( queryId ) ;
-      if ( queryState != null && queryIsScrollable != null )
+// The type of the database is also needed for constructing the result.
+      String queryDbType = getQueryDbType ( queryId ) ;
+      if ( queryState != null && queryIsScrollable != null && queryDbType != null )
       {
         if ( queryState . equals ( queryStateRunning ) )
         {
@@ -710,8 +729,10 @@ public class Print extends Qdata
         {
 // This is the case we should display something interesting.
 // The result set and the elapsed time first.
+// Also getting here the delimiter of the query (for delimiter of csv result).
           ResultSet resultSet = getQueryResultSet ( queryId ) ;
           String elapsedFormatted = getQueryElapsedFormatted ( queryId ) ;
+          String queryDelimiter = getQueryDelimiter ( queryId ) ;
 // The result set can be null or not null, let's check this.
           if ( resultSet != null )
           {
@@ -726,6 +747,10 @@ public class Print extends Qdata
             boolean emptyResult = false ;
 // This is the date object to use for constructing the filename of result files.
             Date dateForFilenames = new Date ( ) ;
+// Folder for the htm result binary content.
+            File htmFolder = null ;
+// The name of the folder above.
+            String htmFolderName = null ;
 // If we need the query string then get it.
             if ( queryToInclude )
             {
@@ -735,7 +760,7 @@ public class Print extends Qdata
             if ( resultTargets . contains ( resultTargetConsValue ) )
             {
 // Getting the txt result.
-              resultTxt = constructResult ( queryIsScrollable , resultSet , headerToInclude , queryString , resultFormatTxtValue , elapsedFormatted ) ;
+              resultTxt = constructResult ( queryIsScrollable , resultSet , headerToInclude , queryString , resultFormatTxtValue , elapsedFormatted , null , queryDbType , queryDelimiter ) ;
               if ( ! "" . equals ( resultTxt ) )
               {
 // Print this if this is not empty.
@@ -769,7 +794,7 @@ public class Print extends Qdata
                 outprint ( messageProducingTxtResult ) ;
                 if ( resultTxt == null )
                 {
-                  resultTxt = constructResult ( queryIsScrollable , resultSet , headerToInclude , queryString , resultFormatTxtValue , elapsedFormatted ) ;
+                  resultTxt = constructResult ( queryIsScrollable , resultSet , headerToInclude , queryString , resultFormatTxtValue , elapsedFormatted , null , queryDbType , queryDelimiter ) ;
                 }
                 if ( ! "" . equals ( resultTxt ) )
                 {
@@ -785,22 +810,29 @@ public class Print extends Qdata
               if ( resultFormats . contains ( resultFormatCsvValue ) && ! emptyResult )
               {
                 outprint ( messageProducingCsvResult ) ;
-                resultCsv = constructResult ( queryIsScrollable , resultSet , headerToInclude , queryString , resultFormatCsvValue , elapsedFormatted ) ;
-                if ( ! "" . equals ( resultCsv ) )
+                if ( ! "" . equals ( queryDelimiter ) )
                 {
-                  writeFileContent ( resultCsv , fileNameResult + simpleDateFormatForFilenames . format ( dateForFilenames ) + filePostfixCsv ) ;
-                  outprintln ( messageDone ) ;
+                  resultCsv = constructResult ( queryIsScrollable , resultSet , headerToInclude , queryString , resultFormatCsvValue , elapsedFormatted , null , queryDbType , queryDelimiter ) ;
+                  if ( ! "" . equals ( resultCsv ) )
+                  {
+                    writeFileContent ( resultCsv , fileNameResult + simpleDateFormatForFilenames . format ( dateForFilenames ) + filePostfixCsv ) ;
+                    outprintln ( messageDone ) ;
+                  }
+                  else
+                  {
+                    emptyResult = true ;
+                    outprintln ( messageSorryButThisResultSetCannotBeDispayed + queryId ) ;
+                  }
                 }
                 else
                 {
-                  emptyResult = true ;
-                  outprintln ( messageSorryButThisResultSetCannotBeDispayed + queryId ) ;
+                  outprintln ( messageDelimiterIsEmpty ) ;
                 }
               }
               if ( resultFormats . contains ( resultFormatHtmValue ) && ! emptyResult )
               {
                 outprint ( messageProducingHtmResult ) ;
-                resultHtm = constructResult ( queryIsScrollable , resultSet , headerToInclude , queryString , resultFormatHtmValue , elapsedFormatted ) ;
+                resultHtm = constructResult ( queryIsScrollable , resultSet , headerToInclude , queryString , resultFormatHtmValue , elapsedFormatted , fileNameResult + simpleDateFormatForFilenames . format ( dateForFilenames ) + SEP , queryDbType , queryDelimiter ) ;
                 if ( ! "" . equals ( resultHtm ) )
                 {
                   writeFileContent ( resultHtm , fileNameResult + simpleDateFormatForFilenames . format ( dateForFilenames ) + filePostfixHtm ) ;
@@ -830,11 +862,12 @@ public class Print extends Qdata
 // Not used.
           resultSet = null ;
           elapsedFormatted = null ;
+          queryDelimiter = null ;
         }
       }
       else
       {
-        systemexit ( "Error - One of these is null: queryState|queryIsScrollable, echoResult" ) ;
+        systemexit ( "Error - One of these is null: queryState|queryIsScrollable|queryDbType, echoResult" ) ;
       }
 // Not used.
       queryState = null ;
@@ -846,7 +879,7 @@ public class Print extends Qdata
 ** This result string can be printed onto the console or into files.
 ** txt (table), csv or htm (html table), one of them will be constructed.
 */
-  protected final String constructResult ( String scr , ResultSet rs , boolean headerToInclude , String queryString , String resultFormatValue , String elapsedFormatted )
+  protected final String constructResult ( String scr , ResultSet rs , boolean headerToInclude , String queryString , String resultFormatValue , String elapsedFormatted , String htmFolderName , String dbtype , String queryDelimiter )
   {
 // This will be the string containing the finaly constructed result.
     String resultString = "" ;
@@ -854,6 +887,8 @@ public class Print extends Qdata
     String fieldsep = null ;
 // This result set is scrollable? (Getting from parameter.)
     boolean scrollable = yes . equals ( scr ) ;
+// In case of htm result, this folder will contain the elements not displayable in the htm table.
+    File htmFolder = null ;
 // This has to be a usable result set!
 // If not, an empty string will be returned to the caller.
 // (Not usable if the result set is null or the result set metadata is not available.)
@@ -862,17 +897,41 @@ public class Print extends Qdata
       if ( utils != null )
       {
 // Determining the field separator.
+// The separator will come from the parameter of this functions
+// because the csv field and data delimiter will be the delimiter
+// of that query.
         if ( resultFormatValue . equals ( resultFormatTxtValue ) )
         {
           fieldsep = fieldsepTxt ;
         }
         else if ( resultFormatValue . equals ( resultFormatCsvValue ) )
         {
-          fieldsep = fieldsepCsv ;
+          fieldsep = queryDelimiter ;
         }
         else if ( resultFormatValue . equals ( resultFormatHtmValue ) )
         {
           fieldsep = fieldsepHtm ;
+// Creating the folder of the other content
+          if ( htmFolderName != null )
+          {
+            htmFolder = new File ( htmFolderName ) ;
+            if ( htmFolder != null )
+            {
+              htmFolder . mkdirs ( ) ;
+              if ( ! ( htmFolder . exists ( ) && htmFolder . isDirectory ( ) ) )
+              {
+                systemexit ( "Error - htmFolder is not existing or not a folder, constructResult" ) ;
+              }
+            }
+            else
+            {
+              systemexit ( "Error - htmFolder is null, constructResult" ) ;
+            }
+          }
+          else
+          {
+            systemexit ( "Error - htmFolderName is null (htm result), constructResult" ) ;
+          }
         }
         if ( fieldsep != null )
         {
@@ -884,7 +943,11 @@ public class Print extends Qdata
           ArrayList < String > cols = new ArrayList < String > ( ) ;
 // The widths of the columns. This is necessary to print out the txt result.
 // (csv and htm won't use these column width values.)
+// And the types of columns.
           int [ ] colw = new int [ 0 ] ;
+          String [ ] colt = new String [ 0 ] ;
+// The current value of the rgesult column has been written onto the disk separately or not.
+          boolean onTheDiskSeparately = false ;
           try
           {
 // Getting the metadata.
@@ -896,8 +959,9 @@ public class Print extends Qdata
               {
 // The count of the columns of the result set.
                 colscount = rsmd . getColumnCount ( ) ;
-// Depending this, we can construct the new array for the widths of columns.
+// Depending this, we can construct the new array for the widths and types of columns.
                 colw = new int [ colscount ] ;
+                colt = new String [ colscount ] ;
 // A newLineChar is added because of formatting.
                 resultString += newLineChar ;
 // The following loop collects the names of the columns
@@ -906,6 +970,7 @@ public class Print extends Qdata
                 {
                   cols . add ( rsmd . getColumnName ( i ) ) ;
                   colw [ i - 1 ] = rsmd . getColumnName ( i ) . length ( ) ;
+                  colt [ i - 1 ] = rsmd . getColumnTypeName ( i ) . toLowerCase ( ) . trim ( ) ;
                 }
               }
               catch ( SQLException e )
@@ -957,8 +1022,8 @@ public class Print extends Qdata
 // Go thru on the cols array: finalizing the maximum length of the columns.
                     for ( String colname : cols )
                     {
-                      val = getVal ( rs , colname ) ;
-                      valStr = getValStr ( val ) ;
+                      val = utils . getVal ( rs , colname ) ;
+                      valStr = utils . getValStr ( val , nullStr ) ;
                       if ( colw [ j - 1 ] < valStr . length ( ) && ( valStr . length ( ) <= appMaxColLengthTxt || ! resultFormatValue . equals ( resultFormatTxtValue ) ) )
                       {
                         colw [ j - 1 ] = valStr . length ( ) ;
@@ -1081,8 +1146,36 @@ public class Print extends Qdata
 // Looping on the columns, this time for the actual value and appending it into the end of the current line.
                     for ( String colname : cols )
                     {
-                      val = getVal ( rs , colname ) ;
-                      valStr = getValStr ( val ) ;
+// Special formattings first and then the else (others) case.
+                      if ( dbType . equals ( dbTypeOracle ) && ( colt [ j - 1 ] . equals ( timestampltz ) || colt [ j - 1 ] . equals ( timestamptz ) || colt [ j - 1 ] . equals ( timestamp ) ) )
+                      {
+                        val = null ;
+                        valStr = simpleDateFormatForTimestamps . format ( rs . getTimestamp ( colname ) ) ;
+                      }
+                      else
+                      {
+                        val = utils . getVal ( rs , colname ) ;
+                        valStr = utils . getValStr ( val , nullStr ) ;
+                      }
+// If it is a htm result then we have further actions to do.
+                      if ( resultFormatValue . equals ( resultFormatHtmValue ) )
+                      {
+// This object has to be written to the disk if necessary.
+                        onTheDiskSeparately = valToTheDiskSeparately ( rs , htmFolderName + valStr , colname , colt [ j - 1 ] , dbtype ) ;
+// The htm link will be placed instead of the single name of the object.
+                        if ( onTheDiskSeparately )
+                        {
+                          valStr = "<a href=\"" + htmFolderName + valStr + "\" target=\"_blank\">" + valStr + "</a>" ;
+                        }
+// If the data (as string) is too long then it also wil be written into separate file
+// and it will be replaced by a htm link in the htm table.
+                        else if ( valStr . length ( ) > appMaxColLengthTxt )
+                        {
+                          writeFileContent ( valStr , htmFolderName + colname + lines ) ;
+                          valStr = "<a href=\"" + htmFolderName + colname + lines + "\" target=\"_blank\">" + colname + lines + "</a>" ;
+                        }
+                      }
+// Processing the line.
                       line = line + ( ( resultFormatValue . equals ( resultFormatTxtValue ) && scrollable ) ? utils . pad ( valStr , colw [ j - 1 ] , spaceChar ) : valStr ) + fieldsep ;
                       j ++ ;
                     }
@@ -1159,6 +1252,8 @@ public class Print extends Qdata
           colscount = 0 ;
           cols = null ;
           colw = null ;
+          colt = null ;
+          onTheDiskSeparately = false ;
         }
         else
         {
@@ -1178,55 +1273,82 @@ public class Print extends Qdata
 // Not in use.
     fieldsep = null ;
     scrollable = false ;
+    htmFolder = null ;
 // Now we can return the result string.
     return resultString ;
   }
 /*
-** Gets the value of a column from a result set.
+** Writes the content of the current column in result set if necessary.
+** By dbtype-by-dbtype, the columns will be decided to be in place or
+** in separate files in the directory named the same as the result set file.
 */
-  protected final Object getVal ( ResultSet rs , String colname )
+  protected final boolean valToTheDiskSeparately ( ResultSet rs , String destfile , String colname , String coltype , String dbtype )
   {
-// This will be the value to be returned.
-    Object val = null ;
-    if ( rs != null )
+    boolean separately = false ;
+    if ( coltype != null && dbtype != null )
     {
-// Getting the value.
-// If any error or exception has ccurred
-// then the error message will be the value of the object.
-      try
+      if ( dbtype . equals ( dbTypeOracle ) )
       {
-        val = rs . getObject ( colname ) ;
+        if ( coltype . equals ( blob ) )
+        {
+          separately = utils . getBlob ( rs , destfile , colname ) ;
+        }
+        else if ( coltype . equals ( clob ) || coltype . equals ( nclob ) )
+        {
+          separately = utils . getClob ( rs , destfile , colname , utf8 ) ;
+        }
+        else if ( coltype . equals ( raw ) || coltype . equals ( longraw ) )
+        {
+          separately = utils . getRaw ( rs , destfile , colname , bufflength ) ;
+        }
+        else if ( coltype . equals ( bfile ) )
+        {
+          separately = utils . getBfile ( rs , destfile , colname , bufflength ) ;
+        }
       }
-      catch ( Error e )
+      else if ( dbtype . equals ( dbTypeMssql ) )
       {
-        val = e . toString ( ) . trim ( ) ;
+        if ( coltype . equals ( image ) )
+        {
+          separately = utils . getBlob ( rs , destfile , colname ) ;
+        }
+        else if ( coltype . equals ( binary ) || coltype . equals ( varbinary ) || coltype . equals ( longvarbinary ) )
+        {
+          separately = utils . getRaw ( rs , destfile , colname , bufflength ) ;
+        }
       }
-      catch ( Exception e )
+      else if ( dbtype . equals ( dbTypeDb2 ) )
       {
-        val = e . toString ( ) . trim ( ) ;
+        if ( coltype . equals ( blob ) )
+        {
+          separately = utils . getBlob ( rs , destfile , colname ) ;
+        }
+        else if ( coltype . equals ( clob ) || coltype . equals ( dbclob ) )
+        {
+          separately = utils . getClob ( rs , destfile , colname , utf8 ) ;
+        }
+        else if ( coltype . equals ( xml ) )
+        {
+          separately = utils . getXml ( rs , destfile , colname , utf8 ) ;
+        }
+      }
+      else if ( dbtype . equals ( dbTypePostgresql ) )
+      {
+        if ( coltype . equals ( bytea ) )
+        {
+          separately = utils . getRaw ( rs , destfile , colname , bufflength ) ;
+        }
+        else if ( coltype . equals ( xml ) )
+        {
+          separately = utils . getXml ( rs , destfile , colname , utf8 ) ;
+        }
+      }
+      else
+      {
+        systemexit ( "Error - dbtype has unexpected value, valToTheDiskSeparately" ) ;
       }
     }
-    else
-    {
-// Let the val be null.
-      val = null ;
-    }
-// Returning the val.
-    return val ;
-  }
-/*
-** Gets the string representation of the object.
-*/
-  protected final String getValStr ( Object val )
-  {
-    if ( val == null )
-    {
-      return nullStr ;
-    }
-    else
-    {
-      return val . toString ( ) ;
-    }
+    return separately ;
   }
 /*
 ** Gets the separator line during constructing result in txt format.

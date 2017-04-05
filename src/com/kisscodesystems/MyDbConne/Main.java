@@ -7,7 +7,7 @@
 **
 ** Published       : 04.01.2017
 **
-** Current version : 1.0
+** Current version : 1.1
 **
 ** Developed by    : Jozsef Kiss
 **                   KissCode Systems Kft
@@ -15,6 +15,15 @@
 **
 ** Changelog       : 1.0 - 04.01.2017
 **                   Initial release.
+**                   1.1 - 04.05.2017
+**                   Htm results contain the binary and long length contents
+**                     behind a htm link.
+**                   Data visualization has been improved.
+**                   Smaller improvements.
+**                   The oracle jdbc is needed to the recompiling because of
+**                     BFILE datatype!
+**                     (The jdbc driver is needed usually for building
+**                      the connections into the database.)
 **
 ** Copyright (C) 2017 KissCode Systems Kft
 **
@@ -83,7 +92,7 @@ public final class Main
     }
     else
     {
-      System . out . println ( "The queriesThread of Queries is found as null." ) ;
+      System . out . println ( "The queriesThread of Queries is found as null, main" ) ;
     }
 // Just for fun.
     System . exit ( 0 ) ;

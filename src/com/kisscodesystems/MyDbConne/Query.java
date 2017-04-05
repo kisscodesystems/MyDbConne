@@ -551,7 +551,7 @@ implements Runnable
           }
           else
           {
-            systemexit ( "Error - batch sql and empty delimiter have been given." ) ;
+            systemexit ( "Error - batch sql and empty delimiter have been given, run" ) ;
           }
 // Not used.
           dbtype = null ;
@@ -644,7 +644,7 @@ implements Runnable
     }
     else
     {
-      systemexit ( "Error - parentRef is null, run" ) ;
+      systemexit ( "Error - parentRef is null, appendErrorString" ) ;
     }
 // Trimming again because of the newly appended part.
   }

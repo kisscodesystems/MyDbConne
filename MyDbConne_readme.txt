@@ -1,11 +1,11 @@
 Please download the source and compile it or download the jar from
 https://github.com/kisscodesystems/MyDbConne/blob/master/MyDbConne.jar
-MD5 hash of file MyDbConne.jar: (v1.0)
-f8 33 d1 52 e7 35 4c fb 55 fb 2e ed ec cc be 7d
-SHA1 hash of file MyDbConne.jar: (v1.0)
-96 7f 2b 95 00 1f be 68 23 4b 03 6e 04 e7 8f f1 d6 18 02 42
-SHA512 hash of file MyDbConne.jar: (v1.0)
-f2 55 a9 e1 4a 78 10 c0 14 22 25 8f 24 9d 77 cb ac c0 12 58 aa eb 3e 91 68 61 35 37 73 86 9d 91 39 dd bc 31 56 7b 75 58 d2 35 00 d9 c7 92 8f a1 1d 90 bf 52 1e 90 1c 59 65 e4 55 b4 8c ce bc 11
+MD5 hash of file MyDbConne.jar: (v1.1)
+06 77 66 6c dc 95 9d e3 24 f4 26 e6 c4 51 a3 22
+SHA1 hash of file MyDbConne.jar: (v1.1)
+aa 4e 5b cb 0a 40 88 0d b8 85 1f 2f 82 c9 d6 67 5a 4a 12 97
+SHA512 hash of file MyDbConne.jar: (v1.1)
+7a ac 3e 8f 7c 29 82 58 6c a7 98 26 8d 25 91 75 10 89 89 8e 18 11 55 a5 60 04 5c 0b 60 0b 15 e3 e2 3a a5 9d 56 38 50 2b de 45 e7 a8 b9 89 3f a1 7c c5 b0 de fe 77 27 07 f8 9c 56 de e4 e6 49 47
 Please move MyDbConne.jar into a safe folder.
 Open a command line and navigate into that folder.
 Type "java -version" to see the actual version of your java. (min 1.8 is required.)

@@ -346,7 +346,7 @@ public class Upper extends Print
                 if ( query . startsWith ( appQueryFilePrefix ) )
                 {
 // The filename is the content without the prefix.
-                  fileName = query . substring ( appQueryFilePrefix . length ( ) , query . length ( ) ) ;
+                  fileName = query . substring ( appQueryFilePrefix . length ( ) , query . length ( ) ) . trim ( ) ;
 // If it is a valid file then reading its content else let the query be the empty string.
                   if ( isValidFilePath ( fileName , false ) && isExistingFile ( fileName , false ) )
                   {
@@ -423,7 +423,7 @@ public class Upper extends Print
 // Calculate the elapsed time when it is finished.
                         elapsedFormatted = utils . calculateElapsed ( new Date ( ) . getTime ( ) - startDate . getTime ( ) ) ;
 // Construct the result using this elapsed time.
-                        resultTxt = constructResult ( yes , resultSet , true , "" , resultFormatTxtValue , elapsedFormatted ) ;
+                        resultTxt = constructResult ( yes , resultSet , true , "" , resultFormatTxtValue , elapsedFormatted , null , dbtype , getDelimiter ( dbtype ) ) ;
 // Just print it out.
                         outprint ( resultTxt ) ;
                       }
@@ -634,6 +634,14 @@ public class Upper extends Print
                   toContinue = false ;
                   outprintln ( messageYourConnectionDoesNotExist ) ;
                 }
+              }
+            }
+            else
+            {
+              if ( getNumOfAllConnections ( ) >= appMaxNumOfConnections )
+              {
+                toContinue = false ;
+                outprintln ( messageYouHaveReachedTheTopOfTheCountOfStorableConnections ) ;
               }
             }
 // If we can continue..
@@ -968,12 +976,12 @@ public class Upper extends Print
       }
       else
       {
-        systemexit ( "Error - driver is null, checkDriver" ) ;
+        systemexit ( "Error - driver is null, isValidDriver" ) ;
       }
     }
     else
     {
-      systemexit ( "Error - dbtype is null, checkDriver" ) ;
+      systemexit ( "Error - dbtype is null, isValidDriver" ) ;
     }
     return success ;
   }
@@ -1137,7 +1145,7 @@ public class Upper extends Print
       }
       else
       {
-        systemexit ( "Error - connna is null, executeCommandConnectionDescribe" ) ;
+        systemexit ( "Error - connna is null, deleteConnection" ) ;
       }
     }
   }
@@ -1164,7 +1172,7 @@ public class Upper extends Print
         {
 // These are the connections in the specified dbtype.
 // The key is the name of the connection and the value is the ArrayList that contains the active connections.
-          HashMap < String , ArrayList < Integer > > connections = getConnectionsByDbtype ( dbtype ) ;
+          HashMap < String , ArrayList < Integer > > connections = getConnectionsByDbtype ( dbtype , true ) ;
           if ( connections != null )
           {
 // Looping on this.
@@ -1391,7 +1399,7 @@ public class Upper extends Print
       }
       else
       {
-        systemexit ( "Error - connna is null, executeCommandConnectionDescribe" ) ;
+        systemexit ( "Error - connna is null, describeConnection" ) ;
       }
     }
   }

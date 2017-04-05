@@ -413,7 +413,7 @@ public class Conn extends Base
         }
         catch ( InvalidKeyException e )
         {
-          systemexit ( "Exception - InvalidKeyException, fileSave" ) ;
+          systemexit ( "Exception - InvalidKeyException, saveFile" ) ;
         }
 // This object is needed to store the iv.
         AlgorithmParameters ap = cipher . getParameters ( ) ;

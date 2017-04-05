@@ -83,46 +83,51 @@ public class Exec extends Upper
 // A valid and decrypted connections file is needed.
     if ( isFileContentConnectionsOrigReady ( ) )
     {
-// The file path has to be valid and the file has to be existing.
-      if ( isValidFilePath ( fileName , true ) && isExistingFile ( fileName , true ) )
+// The number od connections stored already in the connections file.
+      int connectionsInitialCount = getNumOfAllConnections ( ) ;
+// This now have to be smaller than the upper bound.
+      if ( connectionsInitialCount < appMaxNumOfConnections )
       {
-// Asking the user for the formatting of the file.
-        if ( readYesElseAnything ( messageIsFileGoodFormatted , messageFileWontBeUsed ) )
+// The file path has to be valid and the file has to be existing.
+        if ( isValidFilePath ( fileName , true ) && isExistingFile ( fileName , true ) )
         {
-// This will be the content of the file.
-          String contentString = readFileContent ( fileName , false ) ;
-// This will be the array of the above.
-          String [ ] contentArray = null ;
-// Counters.
-          int counter = 0 ;
-          int counterLoaded = 0 ;
-// These are the actual prooperties of the currently processed connection.
-          String dbtype = null ;
-          String connna = null ;
-          String dbuser = null ;
-          String dbpass = null ;
-          String driver = null ;
-          String connst = null ;
-// This would be the position where to insert the data of the new connection.
-          int posToInsert = - 1 ;
-          if ( contentString != null )
+// Asking the user for the formatting of the file.
+          if ( readYesElseAnything ( messageIsFileGoodFormatted , messageFileWontBeUsed ) )
           {
-            contentArray = contentString . split ( newLineString ) ;
-            if ( contentArray != null )
+// This will be the content of the file.
+            String contentString = readFileContent ( fileName , false ) ;
+// This will be the array of the above.
+            String [ ] contentArray = null ;
+// Counters.
+            int counter = 0 ;
+            int counterLoaded = 0 ;
+// These are the actual prooperties of the currently processed connection.
+            String dbtype = null ;
+            String connna = null ;
+            String dbuser = null ;
+            String dbpass = null ;
+            String driver = null ;
+            String connst = null ;
+// This would be the position where to insert the data of the new connection.
+            int posToInsert = - 1 ;
+            if ( contentString != null )
             {
+              contentArray = contentString . split ( newLineString ) ;
+              if ( contentArray != null )
+              {
 // The first validation. The connection contains 6 different property
 // so the elements of the content array have to have the count of multiple of 6.
-              if ( contentArray . length % 6 == 0 )
-              {
-// A confirmation is required from the user to append.
-                if ( readYesElseAnything ( messageAppendThisFileIntoTheEndOfCurrentConnections , messageConnectionsWillNotBeImported ) )
+                if ( contentArray . length % 6 == 0 )
                 {
-// Initialize the counters.
-                  counter = 0 ;
-                  counterLoaded = 0 ;
-// Looping on the content array.
-                  for ( int i = 0 ; i < contentArray . length ; i ++ )
+// A confirmation is required from the user to append.
+                  if ( readYesElseAnything ( messageAppendThisFileIntoTheEndOfCurrentConnections , messageConnectionsWillNotBeImported ) )
                   {
+// Initialize the counters.
+                    counter = 0 ;
+                    counterLoaded = 0 ;
+// Looping on the content array.
+                    for ( int i = 0 ; i < contentArray . length ; i ++ )
+                    {
 // Processing a connection only if we are on the first proprty of the connection.
 // Remember: a connection in the connections file is:
 // database_type\n
@@ -131,143 +136,155 @@ public class Exec extends Upper
 // database_password\n
 // database_driver\n
 // database_connection_string\n
-                    if ( i % 6 == 0 )
-                    {
+                      if ( i % 6 == 0 )
+                      {
 // Just for formatting..
-                      if ( counter == 0 )
-                      {
-                        outprintln ( "" ) ;
-                      }
-// Plus one processing of connection starts.
-                      counter ++ ;
-// The properties of the new connection are:
-                      dbtype = contentArray [ i ] ;
-                      connna = contentArray [ i + 1 ] ;
-                      dbuser = contentArray [ i + 2 ] ;
-                      dbpass = contentArray [ i + 3 ] ;
-                      driver = contentArray [ i + 4 ] ;
-                      connst = contentArray [ i + 5 ] ;
-// By default, no place to insert into.
-                      posToInsert = - 1 ;
-// Printing out the base parameters of the current connection.
-                      outprint ( messageLoadingConnection + dbtype + spaceChar + "-" + spaceChar + connna + spaceChar + doubleDot + spaceChar ) ;
-// Let's validate this connections as it would be added from the connection add command.
-                      if ( isValidDbType ( dbtype , false ) )
-                      {
-                        if ( connna . lastIndexOf ( spaceChar ) == - 1 )
+                        if ( counter == 0 )
                         {
-                          if ( connna . length ( ) > 0 )
+                          outprintln ( "" ) ;
+                        }
+// Plus one processing of connection starts.
+                        counter ++ ;
+// The properties of the new connection are:
+                        dbtype = contentArray [ i ] ;
+                        connna = contentArray [ i + 1 ] ;
+                        dbuser = contentArray [ i + 2 ] ;
+                        dbpass = contentArray [ i + 3 ] ;
+                        driver = contentArray [ i + 4 ] ;
+                        connst = contentArray [ i + 5 ] ;
+// By default, no place to insert into.
+                        posToInsert = - 1 ;
+// Printing out the base parameters of the current connection.
+                        outprint ( messageLoadingConnection + dbtype + spaceChar + "-" + spaceChar + connna + spaceChar + doubleDot + spaceChar ) ;
+// Let's validate this connections as it would be added from the connection add command.
+                        if ( isValidDbType ( dbtype , false ) )
+                        {
+                          if ( connna . lastIndexOf ( spaceChar ) == - 1 )
                           {
-                            if ( getConnnaPos ( dbtype , connna ) == - 1 )
+                            if ( connna . length ( ) > 0 )
                             {
-                              if ( driver . length ( ) > 0 )
+                              if ( getConnnaPos ( dbtype , connna ) == - 1 )
                               {
-                                if ( connst . length ( ) > 0 )
+                                if ( driver . length ( ) > 0 )
                                 {
-// OK, the connection seems to be valid, find a position to insert it.
-                                  posToInsert = getFirstNewLineAndZeroCharIndex ( ) + 1 ;
-// This has to be valid of course.
-                                  if ( posToInsert != - 1 )
+                                  if ( connst . length ( ) > 0 )
                                   {
+// OK, the connection seems to be valid, find a position to insert it.
+                                    posToInsert = getFirstNewLineAndZeroCharIndex ( ) + 1 ;
+// This has to be valid of course.
+                                    if ( posToInsert != - 1 )
+                                    {
 // Inserting the properties of the new connection.
-                                    insertAnAttributeIntoFileContentConnectionsOrig ( dbtype , posToInsert ) ;
-                                    posToInsert = posToInsert + dbtype . length ( ) + 1 ;
-                                    insertAnAttributeIntoFileContentConnectionsOrig ( connna , posToInsert ) ;
-                                    posToInsert = posToInsert + connna . length ( ) + 1 ;
-                                    insertAnAttributeIntoFileContentConnectionsOrig ( dbuser , posToInsert ) ;
-                                    posToInsert = posToInsert + dbuser . length ( ) + 1 ;
-                                    insertAnAttributeIntoFileContentConnectionsOrig ( dbpass , posToInsert ) ;
-                                    posToInsert = posToInsert + dbpass . length ( ) + 1 ;
-                                    insertAnAttributeIntoFileContentConnectionsOrig ( driver , posToInsert ) ;
-                                    posToInsert = posToInsert + driver . length ( ) + 1 ;
-                                    insertAnAttributeIntoFileContentConnectionsOrig ( connst , posToInsert ) ;
+                                      insertAnAttributeIntoFileContentConnectionsOrig ( dbtype , posToInsert ) ;
+                                      posToInsert = posToInsert + dbtype . length ( ) + 1 ;
+                                      insertAnAttributeIntoFileContentConnectionsOrig ( connna , posToInsert ) ;
+                                      posToInsert = posToInsert + connna . length ( ) + 1 ;
+                                      insertAnAttributeIntoFileContentConnectionsOrig ( dbuser , posToInsert ) ;
+                                      posToInsert = posToInsert + dbuser . length ( ) + 1 ;
+                                      insertAnAttributeIntoFileContentConnectionsOrig ( dbpass , posToInsert ) ;
+                                      posToInsert = posToInsert + dbpass . length ( ) + 1 ;
+                                      insertAnAttributeIntoFileContentConnectionsOrig ( driver , posToInsert ) ;
+                                      posToInsert = posToInsert + driver . length ( ) + 1 ;
+                                      insertAnAttributeIntoFileContentConnectionsOrig ( connst , posToInsert ) ;
 // Finalize the lastly printed message with a done.
-                                    outprintln ( messageDone ) ;
+                                      outprintln ( messageDone ) ;
 // This counter has to be increased because plus one connection has been added.
-                                    counterLoaded ++ ;
+                                      counterLoaded ++ ;
+                                      if ( connectionsInitialCount + counterLoaded >= appMaxNumOfConnections )
+                                      {
+                                        outprintln ( messageYouHaveReachedTheTopOfTheCountOfStorableConnections ) ;
+                                        break ;
+                                      }
+                                    }
+                                    else
+                                    {
+                                      systemexit ( "Error - posToInsert is -1, executeCommandConnectionLoad" ) ;
+                                    }
                                   }
                                   else
                                   {
-                                    systemexit ( "Error - posToInsert is -1, executeCommandConnectionLoad" ) ;
+                                    outprintln ( messageConnectionLoadingFailedConnectionStringCannotBeEmpty ) ;
                                   }
                                 }
                                 else
                                 {
-                                  outprintln ( messageConnectionLoadingFailedConnectionStringCannotBeEmpty ) ;
+                                  outprintln ( messageConnectionLoadingFailedDriverCannotBeEmpty ) ;
                                 }
                               }
                               else
                               {
-                                outprintln ( messageConnectionLoadingFailedDriverCannotBeEmpty ) ;
+                                outprintln ( messageConnectionLoadingFailedExistingConnection ) ;
                               }
                             }
                             else
                             {
-                              outprintln ( messageConnectionLoadingFailedExistingConnection ) ;
+                              outprintln ( messageConnectionLoadingFailedConnectionNameCannotBeEmpty ) ;
                             }
                           }
                           else
                           {
-                            outprintln ( messageConnectionLoadingFailedConnectionNameCannotBeEmpty ) ;
+                            outprintln ( messageConnectionLoadingFailedSpaceInConnectionName ) ;
                           }
                         }
                         else
                         {
-                          outprintln ( messageConnectionLoadingFailedSpaceInConnectionName ) ;
+                          outprintln ( messageConnectionLoadingFailedWrongDatabaseType ) ;
                         }
                       }
-                      else
-                      {
-                        outprintln ( messageConnectionLoadingFailedWrongDatabaseType ) ;
-                      }
                     }
-                  }
 // If at least one connection has been loaded.
-                  if ( counterLoaded > 0 )
-                  {
-// Saving the file.
-                    if ( saveFile ( ) )
+                    if ( counterLoaded > 0 )
                     {
+// Saving the file.
+                      if ( saveFile ( ) )
+                      {
 // A final message are going to the user.
-                      if ( counter == counterLoaded )
-                      {
-                        outprintln ( messageAllOfTheConnectionsHaveBeenLoaded + counterLoaded ) ;
-                      }
-                      else
-                      {
-                        if ( counterLoaded == 1 )
+                        if ( counter == counterLoaded )
                         {
-                          outprintln ( messageConnectionHaveBeenLoaded ) ;
+                          outprintln ( messageAllOfTheConnectionsHaveBeenLoaded + counterLoaded ) ;
                         }
                         else
                         {
-                          outprintln ( newLineString + fold + counterLoaded + messageConnectionsHaveBeenLoaded ) ;
+                          if ( counterLoaded == 1 )
+                          {
+                            outprintln ( messageConnectionHaveBeenLoaded ) ;
+                          }
+                          else
+                          {
+                            outprintln ( newLineString + fold + counterLoaded + messageConnectionsHaveBeenLoaded ) ;
+                          }
                         }
                       }
                     }
+                    else
+                    {
+                      outprintln ( messageNoConnectionsHaveBeenLoaded ) ;
+                    }
                   }
-                  else
-                  {
-                    outprintln ( messageNoConnectionsHaveBeenLoaded ) ;
-                  }
+                }
+                else
+                {
+                  outprintln ( messageCountOfLinesOfFileIsNotTheExpected ) ;
                 }
               }
               else
               {
-                outprintln ( messageCountOfLinesOfFileIsNotTheExpected ) ;
+                systemexit ( "Error - contentArray is null, executeCommandConnectionLoad" ) ;
               }
             }
             else
             {
-              systemexit ( "Error - contentArray is null, executeCommandConnectionLoad" ) ;
+              systemexit ( "Error - contentString is null, executeCommandConnectionLoad" ) ;
             }
-          }
-          else
-          {
-            systemexit ( "Error - contentString is null, executeCommandConnectionLoad" ) ;
           }
         }
       }
+      else
+      {
+        outprintln ( messageYouHaveReachedTheTopOfTheCountOfStorableConnections ) ;
+      }
+// Not in use.
+      connectionsInitialCount = 0 ;
     }
   }
 /*
@@ -961,7 +978,7 @@ public class Exec extends Upper
         }
         else
         {
-          systemexit ( "Error - queryState is null, executeCommandQueryDelete" ) ;
+          systemexit ( "Error - queryState is null, executeCommandResultEcho" ) ;
         }
       }
 // Not in use.

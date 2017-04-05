@@ -428,7 +428,7 @@ public class Qdata extends Conn
     }
     else
     {
-      systemexit ( "Error - queryBatchSourceFiles is null, setQueryBatchExecSourceFile" ) ;
+      systemexit ( "Error - queryBatchSourceFiles is null, setQueryBatchSourceFile" ) ;
     }
   }
   protected final synchronized void setQueryBatchSourceQueryId ( int queryId , int queryBatchSourceQueryId )
@@ -735,17 +735,17 @@ public class Qdata extends Conn
                 }
                 else
                 {
-                  systemexit ( "Error - queryDbTypeValue is null, executeCommandQueryCancelall" ) ;
+                  systemexit ( "Error - queryDbTypeValue is null, cancelAllQueries" ) ;
                 }
               }
               else
               {
-                systemexit ( "Error - queryDbTypeKey is null, executeCommandQueryCancelall" ) ;
+                systemexit ( "Error - queryDbTypeKey is null, cancelAllQueries" ) ;
               }
             }
             else
             {
-              systemexit ( "Error - queryDbType is null, executeCommandQueryCancelall" ) ;
+              systemexit ( "Error - queryDbType is null, cancelAllQueries" ) ;
             }
           }
 // Messages to the user depending on how mutch queries have been cancelled.

@@ -29,6 +29,7 @@ public class Base extends Const
 // Date formats.
   protected final SimpleDateFormat simpleDateFormatForDisplaying = new SimpleDateFormat ( appDateFormatForDisplaying ) ;
   protected final SimpleDateFormat simpleDateFormatForFilenames = new SimpleDateFormat ( appDateFormatForFilenames ) ;
+  protected final SimpleDateFormat simpleDateFormatForTimestamps = new SimpleDateFormat ( appDateFormatForTimestamps ) ;
 // The globally selectable database type and connection name.
 // These two property can identify an exact datanase connection
 // from the connections file.
@@ -789,8 +790,8 @@ public class Base extends Const
 // This is a null value or not.
     if ( filePath != null )
     {
-// This contains the file separator or not.
-      if ( ! filePath . contains ( SEP ) )
+// This contains the file separator or not OR the appNams is in it.
+      if ( ! filePath . contains ( SEP ) || filePath . contains ( appName ) )
       {
 // If both are fine then it is a valid file path.
         success = true ;
