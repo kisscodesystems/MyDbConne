@@ -5,9 +5,9 @@
 **                   sql client. Supports Oracle, Mssql, Db2 and Postgresql.
 **                   Handles 42 commands and this is not an accident.
 **
-** Published       : 04.01.2017
+** Published       : 05.03.2017
 **
-** Current version : 1.1
+** Current version : 1.2
 **
 ** Developed by    : Jozsef Kiss
 **                   KissCode Systems Kft
@@ -24,6 +24,8 @@
 **                     BFILE datatype!
 **                     (The jdbc driver is needed usually for building
 **                      the connections into the database.)
+**                   1.2 - 05.03.2017
+**                   Oracle BFILE is now deprecated, using OracleBfile instead.
 **
 ** Copyright (C) 2017 KissCode Systems Kft
 **

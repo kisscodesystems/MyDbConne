@@ -16,7 +16,7 @@ import java . sql . ResultSet ;
 import java . sql . SQLXML ;
 import java . util . ArrayList ;
 import java . util . HashMap ;
-import oracle . sql . BFILE ;
+import oracle . jdbc . OracleBfile ;
 public final class Utils
 {
 /*
@@ -262,7 +262,7 @@ public final class Utils
   protected final boolean getBfile ( ResultSet rs , String destfile , String colname , int bufflength )
   {
     boolean separately = false ;
-    BFILE bfile = null ;
+    OracleBfile bfile = null ;
     InputStream inst = null ;
     File file = null ;
     FileOutputStream fout = null ;
@@ -270,7 +270,7 @@ public final class Utils
     int bytes = 0 ;
     try
     {
-      bfile = ( BFILE ) rs . getObject ( colname ) ;
+      bfile = ( OracleBfile ) rs . getObject ( colname ) ;
       bfile . openFile ( ) ;
       inst = bfile . getBinaryStream ( ) ;
       file = new File ( destfile ) ;
