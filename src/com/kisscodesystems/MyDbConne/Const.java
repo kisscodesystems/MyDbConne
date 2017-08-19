@@ -47,7 +47,7 @@ public class Const
 ** The application describe prints the informations being in these constants.
 */
   protected final String appName = "MyDbConne" ;
-  protected final String appVersion = "1.2" ;
+  protected final String appVersion = "1.3" ;
   protected final int appMaxLengthOfInput = 999 ;
   protected final int appMaxLengthOfSql = 1000000 ;
   protected final String appConnectionsDir = "cs" ;

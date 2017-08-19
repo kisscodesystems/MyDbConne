@@ -7,7 +7,7 @@
 **
 ** Published       : 05.03.2017
 **
-** Current version : 1.2
+** Current version : 1.3
 **
 ** Developed by    : Jozsef Kiss
 **                   KissCode Systems Kft
@@ -26,8 +26,7 @@
 **                      the connections into the database.)
 **                   1.2 - 05.03.2017
 **                   Oracle BFILE is now deprecated, using OracleBfile instead.
-**
-** Copyright (C) 2017 KissCode Systems Kft
+**                   1.3 - 08.19.2017
 **
 ** Example command to start this application:
 **   "C:\Program Files\Java\jdk1.8.0_121\bin\java.exe" /
