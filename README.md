@@ -8,7 +8,7 @@ The most important features of MyDbConne.
     ; loads connections from file
     ; the possibility to cache the connections password
     (compile time property, this app has to be recompiled to change this)
-  - Oracle, Mssql, Db2 and Postgresql databases are supported
+  - Mysql, Oracle, Mssql, Db2 and Postgresql databases are supported
   - multiple queries are available to run
     ; in multiple database types at the same time
   - sql-s can come from the console or from file
