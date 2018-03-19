@@ -25,7 +25,11 @@ public class Upper extends Print
     {
 // Changing the prompt.
 // The else case is always the Postgresql.
-      if ( dbType . equals ( dbTypeOracle ) )
+      if ( dbType . equals ( dbTypeMysql ) )
+      {
+        changePrompt ( promptMysql ) ;
+      }
+      else if ( dbType . equals ( dbTypeOracle ) )
       {
         changePrompt ( promptOracle ) ;
       }
@@ -137,11 +141,15 @@ public class Upper extends Print
           dbType = dbtype ;
           changePromptToTheActual ( ) ;
         }
-        if ( dbTypeOracle != null && dbTypeMssql != null && dbTypeDb2 != null && dbTypePostgresql != null )
+        if ( dbTypeMysql != null && dbTypeOracle != null && dbTypeMssql != null && dbTypeDb2 != null && dbTypePostgresql != null )
         {
 // Print the delimiter out.
 // The else case is always the Postgresql.
-          if ( dbTypeOracle . equals ( dbType ) )
+          if ( dbTypeMysql . equals ( dbType ) )
+          {
+            outprintln ( newLineString + fold + dbTypeMysql + messageDelimiterHasBeenChangedTo + ( "" . equals ( delimiterMysql ) ? messageEmpty : delimiterMysql ) ) ;
+          }
+          else if ( dbTypeOracle . equals ( dbType ) )
           {
             outprintln ( newLineString + fold + dbTypeOracle + messageDelimiterHasBeenChangedTo + ( "" . equals ( delimiterOracle ) ? messageEmpty : delimiterOracle ) ) ;
           }
@@ -160,7 +168,7 @@ public class Upper extends Print
         }
         else
         {
-          systemexit ( "Error - one of these is null: dbTypeOracle|dbTypeMssql|dbTypeDb2|dbTypePostgresql, showDelimiter" ) ;
+          systemexit ( "Error - one of these is null: dbTypeMysql|dbTypeOracle|dbTypeMssql|dbTypeDb2|dbTypePostgresql, showDelimiter" ) ;
         }
       }
     }
@@ -929,7 +937,18 @@ public class Upper extends Print
 // The driver has to contain the string we searching for.
 // If that string is contained by the driver then the validation is successful.
 // Else not and a message goes to the user.
-        if ( dbtype . equals ( dbTypeOracle ) )
+        if ( dbtype . equals ( dbTypeMysql ) )
+        {
+          if ( driver . contains ( dbTypeDriverSearchMysql ) )
+          {
+            success = true ;
+          }
+          else
+          {
+            outprintln ( messageDriverForMysqlHasToContain + dbTypeDriverSearchMysql ) ;
+          }
+        }
+        else if ( dbtype . equals ( dbTypeOracle ) )
         {
           if ( driver . contains ( dbTypeDriverSearchOracle ) )
           {

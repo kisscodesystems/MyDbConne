@@ -356,6 +356,7 @@ public class Exec extends Upper
 // Not empty dbType: only that type of database connections will be lost.
         if ( "" . equals ( dbType ) )
         {
+          deleteConnectionsByDbType ( dbTypeMysql ) ;
           deleteConnectionsByDbType ( dbTypeOracle ) ;
           deleteConnectionsByDbType ( dbTypeMssql ) ;
           deleteConnectionsByDbType ( dbTypeDb2 ) ;
@@ -1039,11 +1040,15 @@ public class Exec extends Upper
             dbType = dbtype ;
             changePromptToTheActual ( ) ;
           }
-          if ( dbTypeOracle != null && dbTypeMssql != null && dbTypeDb2 != null && dbTypePostgresql != null )
+          if ( dbTypeMysql != null && dbTypeOracle != null && dbTypeMssql != null && dbTypeDb2 != null && dbTypePostgresql != null )
           {
 // Changing the delimiter now.
 // The else case is always the postgresql database type.
-            if ( dbTypeOracle . equals ( dbType ) )
+            if ( dbTypeMysql . equals ( dbType ) )
+            {
+              delimiterMysql = delimiter ;
+            }
+            else if ( dbTypeOracle . equals ( dbType ) )
             {
               delimiterOracle = delimiter ;
             }
@@ -1064,7 +1069,7 @@ public class Exec extends Upper
           }
           else
           {
-            systemexit ( "Error - one of these is null: dbTypeOracle|dbTypeMssql|dbTypeDb2|dbTypePostgresql, executeCommandDelimiterChange" ) ;
+            systemexit ( "Error - one of these is null: dbTypeMysql|dbTypeOracle|dbTypeMssql|dbTypeDb2|dbTypePostgresql, executeCommandDelimiterChange" ) ;
           }
         }
       }

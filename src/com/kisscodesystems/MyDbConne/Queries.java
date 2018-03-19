@@ -207,7 +207,13 @@ implements Runnable
                     args = new String [ 0 ] ;
                   }
 // Some of the commands are considered right here.
-                  if ( dbTypeOracle . toLowerCase ( ) . equals ( requestString . toLowerCase ( ) ) )
+                  if ( dbTypeMysql . toLowerCase ( ) . equals ( requestString . toLowerCase ( ) ) )
+                  {
+                    dbType = dbTypeMysql ;
+                    dbConn = "" ;
+                    changePrompt ( promptMysql ) ;
+                  }
+                  else if ( dbTypeOracle . toLowerCase ( ) . equals ( requestString . toLowerCase ( ) ) )
                   {
                     dbType = dbTypeOracle ;
                     dbConn = "" ;

@@ -44,6 +44,7 @@ public class Base extends Const
   protected volatile String prompt = null ;
 // The delimiters of the database types.
 // By default, these will be empty strings, so the sql statement delimiters are new line characters.
+  protected volatile String delimiterMysql = "" ;
   protected volatile String delimiterOracle = "" ;
   protected volatile String delimiterMssql = "" ;
   protected volatile String delimiterDb2 = "" ;
@@ -102,7 +103,11 @@ public class Base extends Const
 */
   protected final String getDelimiter ( String dbtype )
   {
-    if ( dbtype . equals ( dbTypeOracle ) )
+    if ( dbtype . equals ( dbTypeMysql ) )
+    {
+      return delimiterMysql ;
+    }
+    else if ( dbtype . equals ( dbTypeOracle ) )
     {
       return delimiterOracle ;
     }
@@ -130,7 +135,11 @@ public class Base extends Const
   {
     if ( dbType != null )
     {
-      if ( dbType . equals ( dbTypeOracle ) )
+      if ( dbType . equals ( dbTypeMysql ) )
+      {
+        return delimiterMysql ;
+      }
+      else if ( dbType . equals ( dbTypeOracle ) )
       {
         return delimiterOracle ;
       }
@@ -316,7 +325,7 @@ public class Base extends Const
   {
 // Valid by default.
     boolean valid = true ;
-    if ( dbtype . equals ( dbTypeOracle ) || dbtype . equals ( dbTypeMssql ) || dbtype . equals ( dbTypeDb2 ) || dbtype . equals ( dbTypePostgresql ) )
+    if ( dbtype . equals ( dbTypeMysql ) || dbtype . equals ( dbTypeOracle ) || dbtype . equals ( dbTypeMssql ) || dbtype . equals ( dbTypeDb2 ) || dbtype . equals ( dbTypePostgresql ) )
     {
 // Valid now.
       valid = true ;

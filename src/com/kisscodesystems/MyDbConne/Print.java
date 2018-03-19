@@ -155,7 +155,7 @@ public class Print extends Qdata
 */
   protected final int getNumOfAllConnections ( )
   {
-    return getConnectionsByDbtype ( dbTypeOracle , false ) . size ( ) + getConnectionsByDbtype ( dbTypeMssql , false ) . size ( ) + getConnectionsByDbtype ( dbTypeDb2 , false ) . size ( ) + getConnectionsByDbtype ( dbTypePostgresql , false ) . size ( ) ;
+    return getConnectionsByDbtype ( dbTypeMysql , false ) . size ( ) + getConnectionsByDbtype ( dbTypeOracle , false ) . size ( ) + getConnectionsByDbtype ( dbTypeMssql , false ) . size ( ) + getConnectionsByDbtype ( dbTypeDb2 , false ) . size ( ) + getConnectionsByDbtype ( dbTypePostgresql , false ) . size ( ) ;
   }
 /*
 ** Getting the connections by dbtypes.
@@ -341,6 +341,7 @@ public class Print extends Qdata
 // Empty database type: listing all of the database types.
         if ( "" . equals ( dbType ) )
         {
+          listConnectionsByDbtype ( dbTypeMysql , typeToList ) ;
           listConnectionsByDbtype ( dbTypeOracle , typeToList ) ;
           listConnectionsByDbtype ( dbTypeMssql , typeToList ) ;
           listConnectionsByDbtype ( dbTypeDb2 , typeToList ) ;
@@ -496,6 +497,7 @@ public class Print extends Qdata
 // If it is not empty then that type of the database will be listed.
         if ( "" . equals ( dbType ) )
         {
+          listQueriesByDbtype ( dbTypeMysql , typeToList ) ;
           listQueriesByDbtype ( dbTypeOracle , typeToList ) ;
           listQueriesByDbtype ( dbTypeMssql , typeToList ) ;
           listQueriesByDbtype ( dbTypeDb2 , typeToList ) ;
@@ -798,8 +800,10 @@ public class Print extends Qdata
                 }
                 if ( ! "" . equals ( resultTxt ) )
                 {
-                  writeFileContent ( resultTxt , fileNameResult + simpleDateFormatForFilenames . format ( dateForFilenames ) + filePostfixTxt ) ;
+                  String filename = fileNameResult + simpleDateFormatForFilenames . format ( dateForFilenames ) + filePostfixTxt ;
+                  writeFileContent ( resultTxt , filename ) ;
                   outprintln ( messageDone ) ;
+                  outprintln ( fileFilePrefix + new File ( filename ) . getAbsolutePath ( ) ) ;
                 }
                 else
                 {
@@ -815,8 +819,10 @@ public class Print extends Qdata
                   resultCsv = constructResult ( queryIsScrollable , resultSet , headerToInclude , queryString , resultFormatCsvValue , elapsedFormatted , null , queryDbType , queryDelimiter ) ;
                   if ( ! "" . equals ( resultCsv ) )
                   {
-                    writeFileContent ( resultCsv , fileNameResult + simpleDateFormatForFilenames . format ( dateForFilenames ) + filePostfixCsv ) ;
+                    String filename = fileNameResult + simpleDateFormatForFilenames . format ( dateForFilenames ) + filePostfixCsv ;
+                    writeFileContent ( resultCsv , filename ) ;
                     outprintln ( messageDone ) ;
+                    outprintln ( fileFilePrefix + new File ( filename ) . getAbsolutePath ( ) ) ;
                   }
                   else
                   {
@@ -835,8 +841,10 @@ public class Print extends Qdata
                 resultHtm = constructResult ( queryIsScrollable , resultSet , headerToInclude , queryString , resultFormatHtmValue , elapsedFormatted , fileNameResult + simpleDateFormatForFilenames . format ( dateForFilenames ) + SEP , queryDbType , queryDelimiter ) ;
                 if ( ! "" . equals ( resultHtm ) )
                 {
-                  writeFileContent ( resultHtm , fileNameResult + simpleDateFormatForFilenames . format ( dateForFilenames ) + filePostfixHtm ) ;
+                  String filename = fileNameResult + simpleDateFormatForFilenames . format ( dateForFilenames ) + filePostfixHtm ;
+                  writeFileContent ( resultHtm , filename ) ;
                   outprintln ( messageDone ) ;
+                  outprintln ( fileFilePrefix + new File ( filename ) . getAbsolutePath ( ) ) ;
                 }
                 else
                 {
@@ -1167,7 +1175,7 @@ public class Print extends Qdata
                         {
                           valStr = "<a href=\"" + htmFolderName + valStr + "\" target=\"_blank\">" + valStr + "</a>" ;
                         }
-// If the data (as string) is too long then it also wil be written into separate file
+// If the data (as string) is too long then it also will be written into separate file
 // and it will be replaced by a htm link in the htm table.
                         else if ( valStr . length ( ) > appMaxColLengthTxt )
                         {
@@ -1215,17 +1223,17 @@ public class Print extends Qdata
 // And finally the elapsed time will be appended in the way depending on the requested result format.
               if ( resultFormatValue . equals ( resultFormatTxtValue ) )
               {
-                resultString += "" + spaceChar + lines + messageRowsSelected + newLineChar ;
+                resultString += "" + spaceChar + getSelectedRowsDisplaying ( lines ) + newLineChar ;
                 resultString += "" + spaceChar + elapsedFormatted + newLineChar ;
               }
               else if ( resultFormatValue . equals ( resultFormatCsvValue ) )
               {
-                resultString += lines + messageRowsSelected + newLineChar ;
+                resultString += getSelectedRowsDisplaying ( lines ) + newLineChar ;
                 resultString += elapsedFormatted + newLineChar ;
               }
               else if ( resultFormatValue . equals ( resultFormatHtmValue ) )
               {
-                resultString += "<tr><td colspan=\"" + colw . length + "\">" + lines + messageRowsSelected + "</td></tr>" + newLineChar ;
+                resultString += "<tr><td colspan=\"" + colw . length + "\">" + getSelectedRowsDisplaying ( lines ) + "</td></tr>" + newLineChar ;
                 resultString += "<tr><td colspan=\"" + colw . length + "\">" + elapsedFormatted + "</td></tr>" + newLineChar ;
                 resultString += "</table>" + newLineChar ;
               }
@@ -1278,6 +1286,13 @@ public class Print extends Qdata
     return resultString ;
   }
 /*
+** Gets the selected rows displaying text.
+*/
+  private final String getSelectedRowsDisplaying ( int lines )
+  {
+    return ( lines == 0 ? messageNoRowsSelected : ( lines == 1 ? message1RowSelected : "" + lines + messageRowsSelected ) ) ;
+  }
+/*
 ** Writes the content of the current column in result set if necessary.
 ** By dbtype-by-dbtype, the columns will be decided to be in place or
 ** in separate files in the directory named the same as the result set file.
@@ -1287,7 +1302,14 @@ public class Print extends Qdata
     boolean separately = false ;
     if ( coltype != null && dbtype != null )
     {
-      if ( dbtype . equals ( dbTypeOracle ) )
+      if ( dbtype . equals ( dbTypeMysql ) )
+      {
+        if ( coltype . equals ( bit ) || coltype . equals ( binary ) || coltype . equals ( varbinary ) || coltype . equals ( tinyblob ) || coltype . equals ( blob ) || coltype . equals ( mediumblob ) || coltype . equals ( longblob ) )
+        {
+          separately = utils . getBlob ( rs , destfile , colname ) ;
+        }
+      }
+      else if ( dbtype . equals ( dbTypeOracle ) )
       {
         if ( coltype . equals ( blob ) )
         {

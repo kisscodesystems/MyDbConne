@@ -2,12 +2,13 @@
 ** MyDbConne application.
 **
 ** Description:    : This tiny application works for you as a command line
-**                   sql client. Supports Oracle, Mssql, Db2 and Postgresql.
+**                   sql client.
+**                   Supports Mysql, Oracle, Mssql, Db2 and Postgresql.
 **                   Handles 42 commands and this is not an accident.
 **
 ** Published       : 05.03.2017
 **
-** Current version : 1.3
+** Current version : 1.4
 **
 ** Developed by    : Jozsef Kiss
 **                   KissCode Systems Kft
@@ -27,6 +28,8 @@
 **                   1.2 - 05.03.2017
 **                   Oracle BFILE is now deprecated, using OracleBfile instead.
 **                   1.3 - 08.19.2017
+**                   1.4 - 03.19.2018
+**                   Now supports Mysql.
 **
 ** Example command to start this application:
 **   "C:\Program Files\Java\jdk1.8.0_121\bin\java.exe" /
