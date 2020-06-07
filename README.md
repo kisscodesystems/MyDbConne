@@ -1,7 +1,7 @@
 # MyDbConns
 The lightweight java sql client application.
 
-The most important features of MyDbConne.
+The most important features of MyDbConns.
 
   - connection management, in encrypted files
     ; adds, edits and deletes connections
