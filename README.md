@@ -1,4 +1,4 @@
-# MyDbConne
+# MyDbConns
 The lightweight java sql client application.
 
 The most important features of MyDbConne.
