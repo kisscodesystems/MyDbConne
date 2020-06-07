@@ -26,4 +26,4 @@ The most important features of MyDbConne.
     ; multiple: executes multiple sql commands and it has no result set
     ; batch: one single sql query using a file or result set as datasource
     
-Read more: https://openso.kisscodesystems.com
+Read more: http://kcsopensource.com
